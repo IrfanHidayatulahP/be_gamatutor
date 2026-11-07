@@ -1,0 +1,28 @@
+{
+  "questions": [
+    {"id": 1, "category": "rehearsal", "text": "Saya mengulang-ulang materi belajar agar mudah diingat", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 2, "category": "rehearsal", "text": "Saya menghafal istilah-istilah kunci dengan membacanya berulang kali", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 3, "category": "rehearsal", "text": "Saya membuat catatan ringkas dan membacanya berulang sebelum ujian", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 4, "category": "rehearsal", "text": "Saya mengucapkan kembali konsep penting dengan kata-kata sendiri untuk mengingatnya", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 5, "category": "elaboration", "text": "Saya menghubungkan materi baru dengan pengetahuan yang sudah saya miliki", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 6, "category": "elaboration", "text": "Saya mencoba memahami makna mendalam di balik konsep, bukan sekadar menghafal", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 7, "category": "elaboration", "text": "Saya membuat analogi atau contoh sendiri untuk memahami materi yang sulit", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 8, "category": "elaboration", "text": "Saya bertanya \"mengapa\" dan \"bagaimana\" saat mempelajari konsep baru", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 9, "category": "organization", "text": "Saya membuat kerangka atau mind map sebelum mempelajari materi detail", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 10, "category": "organization", "text": "Saya mengelompokkan informasi serupa agar lebih mudah dipahami", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 11, "category": "organization", "text": "Saya membuat rangkuman atau outline dari bab yang dipelajari", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 12, "category": "organization", "text": "Saya menyusun poin-poin utama dan detail pendukung secara sistematis", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 13, "category": "critical_thinking", "text": "Saya mengevaluasi kredibilitas sumber informasi sebelum mempercayainya", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 14, "category": "critical_thinking", "text": "Saya mempertanyakan asumsi di balik argumen atau teori yang dipelajari", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 15, "category": "critical_thinking", "text": "Saya membandingkan perspektif berbeda sebelum menarik kesimpulan", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 16, "category": "critical_thinking", "text": "Saya menguji logika dan bukti pendukung sebelum menerima klaim sebagai benar", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 17, "category": "metacognitive_self_regulation", "text": "Saya merencanakan strategi belajar sebelum memulai sesi belajar", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 18, "category": "metacognitive_self_regulation", "text": "Saya memantau pemahaman saya saat belajar dan menyesuaikan cara belajar jika perlu", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 19, "category": "metacognitive_self_regulation", "text": "Saya merefleksikan apa yang telah dipelajari dan mengevaluasi efektifitas strategi saya", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 20, "category": "metacognitive_self_regulation", "text": "Saya menyadari kapan saya bingung dan mengambil langkah untuk memperbaikinya", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 21, "category": "time_management", "text": "Saya membuat jadwal belajar dan berusaha mengikutinya", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 22, "category": "time_management", "text": "Saya mengutamakan tugas-tugas penting dan mengerjakannya terlebih dahulu", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 23, "category": "time_management", "text": "Saya mengatur waktu istirahat agar tidak kelelahan saat belajar lama", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]},
+    {"id": 24, "category": "time_management", "text": "Saya menghindari prokrastinasi dan memulai tugas tepat waktu", "options": ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"]}
+  ]
+}
