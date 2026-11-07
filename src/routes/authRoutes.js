@@ -1,18 +1,46 @@
 const express = require('express');
-const { registerUser, registerUserbyGoogle, loginUser, loginByGoogle, getCurrentUser, logoutUser, refreshToken, forgotPasswordController, resetPasswordController } = require('../controllers/authController');
-const { registerValidation, loginValidation, forgotPasswordValidation, resetPasswordValidation } = require('../middleware/validation');
+const {
+    registerUser,
+    registerUserbyGoogle,
+    loginUser,
+    loginByGoogle,
+    getCurrentUser,
+    logoutUser,
+    refreshToken,
+    forgotPasswordController,
+    resetPasswordController,
+    googleLoginController,
+    updateProfileController
+} = require('../controllers/authController');
+const {
+    registerValidation,
+    loginValidation,
+    forgotPasswordValidation,
+    resetPasswordValidation,
+    updateProfileValidation
+} = require('../middleware/validation');
 const { authenticate } = require('../middleware/auth');
+const { authLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-router.post('/register', registerValidation, registerUser);
-router.post('/register/google', registerValidation, registerUserbyGoogle);
-router.post('/login', loginValidation, loginUser);
-router.post('/login/google', loginByGoogle);
+// Autentikasi Standar (Dilindungi Rate Limiter)
+router.post('/register', authLimiter, registerValidation, registerUser);
+router.post('/login', authLimiter, loginValidation, loginUser);
+
+// Sesi & Profil Pengguna
 router.get('/me', authenticate, getCurrentUser);
+router.put('/me', authenticate, updateProfileValidation, updateProfileController);
 router.post('/logout', authenticate, logoutUser);
 router.post('/refresh', authenticate, refreshToken);
-router.post('/forgot-password', forgotPasswordValidation, forgotPasswordController);
-router.post('/reset-password', resetPasswordValidation, resetPasswordController);
+
+// Reset Password
+router.post('/forgot-password', passwordResetLimiter, forgotPasswordValidation, forgotPasswordController);
+router.post('/reset-password', passwordResetLimiter, resetPasswordValidation, resetPasswordController);
+
+// Google Sign-In 
+router.post('/google', authLimiter, googleLoginController);
+router.post('/login/google', authLimiter, loginByGoogle);
+router.post('/register/google', authLimiter, registerValidation, registerUserbyGoogle);
 
 module.exports = router;

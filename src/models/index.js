@@ -19,7 +19,14 @@ const CardListCollab = require('./cardListCollab')(sequelize, DataTypes);
 const CardListChat = require('./cardListChat')(sequelize, DataTypes);
 const UserActivityLog = require('./userActivityLog')(sequelize, DataTypes);
 const LlmRecommendationHistory = require('./llmRecommendationHistory')(sequelize, DataTypes);
+const AvatarComponent = require('./avatarComponent')(sequelize, DataTypes);
 const UserAvatar = require('./userAvatar')(sequelize, DataTypes);
+const AvatarUnlock = require('./avatarUnlock')(sequelize, DataTypes);
+const Call = require('./call')(sequelize, DataTypes);
+const CallParticipant = require('./callParticipant')(sequelize, DataTypes);
+const GroupCall = require('./groupCall')(sequelize, DataTypes);
+const GroupCallParticipant = require('./groupCallParticipant')(sequelize, DataTypes);
+const CallActivity = require('./callActivity')(sequelize, DataTypes);
 
 // A. USER MANAGEMENT & AUTHENTICATION
 // User -> Token (1:M)
@@ -74,6 +81,10 @@ CardListChat.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasOne(UserAvatar, { foreignKey: 'userId', as: 'avatar' });
 UserAvatar.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// User -> AvatarUnlock (1:M)
+User.hasMany(AvatarUnlock, { foreignKey: 'userId', as: 'avatarUnlocks' });
+AvatarUnlock.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 // C. STRATEGI BELAJAR & CARD MANAGEMENT
 // Card -> CardList (1:1)
 Card.hasMany(CardList, { foreignKey: 'cardId', as: 'cardList' });
@@ -100,24 +111,75 @@ User.hasMany(Chat, { foreignKey: 'friendId', as: 'receivedChats' });
 CardListCollab.hasMany(CardListChat, { foreignKey: 'collabId', as: 'chats' });
 CardListChat.belongsTo(CardListCollab, { foreignKey: 'collabId', as: 'collab' });
 
+// E. GAMIFIKASI (AVATAR)
+AvatarComponent.hasMany(UserAvatar, { foreignKey: 'hairId', as: 'hairUsers' });
+AvatarComponent.hasMany(UserAvatar, { foreignKey: 'faceId', as: 'faceUsers' });
+AvatarComponent.hasMany(UserAvatar, { foreignKey: 'shirtId', as: 'shirtUsers' });
+AvatarComponent.hasMany(UserAvatar, { foreignKey: 'pantsId', as: 'pantsUsers' });
+AvatarComponent.hasMany(UserAvatar, { foreignKey: 'specialId', as: 'specialUsers' });
+
+AvatarComponent.hasMany(AvatarUnlock, { foreignKey: 'componentId', as: 'unlocks' });
+AvatarUnlock.belongsTo(AvatarComponent, { foreignKey: 'componentId', as: 'component' });
+
+UserAvatar.belongsTo(AvatarComponent, { foreignKey: 'hairId', as: 'hair' });
+UserAvatar.belongsTo(AvatarComponent, { foreignKey: 'faceId', as: 'face' });
+UserAvatar.belongsTo(AvatarComponent, { foreignKey: 'shirtId', as: 'shirt' });
+UserAvatar.belongsTo(AvatarComponent, { foreignKey: 'pantsId', as: 'pants' });
+UserAvatar.belongsTo(AvatarComponent, { foreignKey: 'specialId', as: 'special' });
+
+// F. CALL MODELS
+// User -> Call (as caller)
+User.hasMany(Call, { foreignKey: 'callerId', as: 'outgoingCalls' });
+
+// User -> Call (as callee)
+User.hasMany(Call, { foreignKey: 'calleeId', as: 'incomingCalls' });
+
+// User -> CallParticipant
+User.hasMany(CallParticipant, { foreignKey: 'userId', as: 'callParticipations' });
+CallParticipant.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// Call -> CallActivity
+Call.hasMany(CallActivity, { foreignKey: 'callId', as: 'activities' });
+CallActivity.belongsTo(Call, { foreignKey: 'callId', as: 'call' });
+
+// GroupCall -> CallActivity
+GroupCall.hasMany(CallActivity, { foreignKey: 'groupCallId', as: 'activities' });
+CallActivity.belongsTo(GroupCall, { foreignKey: 'groupCallId', as: 'groupCall' });
+
+// User -> CallActivity
+User.hasMany(CallActivity, { foreignKey: 'userId', as: 'callActivities' });
+CallActivity.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// Call static associations (for GroupCall, GroupCallParticipant class-based models)
+Call.associate({ User, CallParticipant, GroupCall, GroupCallParticipant, CallActivity });
+GroupCall.associate({ User, Card, GroupCallParticipant, CallActivity });
+GroupCallParticipant.associate({ GroupCall, User });
+
 module.exports = {
-  User,
-  Token,
-  Card,
-  CardList,
-  LearningStrat,
-  ColumnMovement,
-  Notification,
-  Chat,
-  Friendship,
-  LlmPromptTemplate,
-  MslqStaticQuestion,
-  UserQuizResult,
-  MonthlyEvaluation,
-  CardListCollab,
-  CardListChat,
-  UserActivityLog,
-  LlmRecommendationHistory,
-  UserAvatar,
-  sequelize
+    User,
+    Token,
+    Card,
+    CardList,
+    LearningStrat,
+    ColumnMovement,
+    Notification,
+    Chat,
+    Friendship,
+    LlmPromptTemplate,
+    MslqStaticQuestion,
+    UserQuizResult,
+    MonthlyEvaluation,
+    CardListCollab,
+    CardListChat,
+    UserActivityLog,
+    LlmRecommendationHistory,
+    AvatarComponent,
+    UserAvatar,
+    AvatarUnlock,
+    Call,
+    CallParticipant,
+    GroupCall,
+    GroupCallParticipant,
+    CallActivity,
+    sequelize
 };

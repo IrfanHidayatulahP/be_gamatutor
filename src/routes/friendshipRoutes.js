@@ -1,42 +1,55 @@
-// const express = require('express');
-// const { sendRequest, getAll, getById, getFriends, getPending, accept, block, reject, remove } = require('../controllers/friendshipController');
-// const { friendshipValidation, uuidFriendshipIdParamValidation, uuidUserIdParamValidation } = require('../middleware/validation');
-// const { authenticate } = require('../middleware/auth');
-
-// const router = express.Router();
-
-// router.use(authenticate);
-
-// router.post('/', friendshipValidation, sendRequest);
-// router.get('/', getAll);
-// router.get('/user/:userId/friends', uuidUserIdParamValidation, getFriends);
-// router.get('/user/:userId/pending', uuidUserIdParamValidation, getPending);
-// router.get('/:fsId', uuidFriendshipIdParamValidation, getById);
-// router.put('/:fsId/accept', uuidFriendshipIdParamValidation, accept);
-// router.put('/:fsId/block', uuidFriendshipIdParamValidation, block);
-// router.put('/:fsId/reject', uuidFriendshipIdParamValidation, reject);
-// router.delete('/:fsId', uuidFriendshipIdParamValidation, remove);
-
-// module.exports = router;
-
 const express = require('express');
-const { sendRequest, cancelRequest, getAll, getById, getFriends, getPending, accept, block, reject, remove } = require('../controllers/friendshipController');
-const { friendshipValidation, uuidFriendshipIdParamValidation, uuidUserIdParamValidation } = require('../middleware/validation');
+const {
+    sendRequest,
+    cancelRequest,
+    getAll,
+    getById,
+    getFriends,
+    getPending,
+    getTeamFriends,
+    accept,
+    block,
+    reject,
+    unblock,
+    remove,
+} = require('../controllers/friendshipController');
+const {
+    friendshipValidation,
+    uuidFriendshipIdParamValidation,
+    uuidUserIdParamValidation,
+} = require('../middleware/validation');
 const { authenticate } = require('../middleware/auth');
+const { writeLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
 router.use(authenticate);
 
-router.post('/', friendshipValidation, sendRequest);
-router.delete('/cancel/:friendId', cancelRequest);
+// ---- Write routes ----
+router.post('/', writeLimiter, friendshipValidation, sendRequest);
+router.delete(
+    '/cancel/:friendId',
+    writeLimiter,
+    uuidUserIdParamValidation,
+    cancelRequest
+);
+
+// ---- Read routes: user-scoped ----
 router.get('/', getAll);
 router.get('/user/:userId/friends', uuidUserIdParamValidation, getFriends);
 router.get('/user/:userId/pending', uuidUserIdParamValidation, getPending);
+router.get('/user/:userId/team-friends', uuidUserIdParamValidation, getTeamFriends);
+
+// ---- Read routes: by id ----
 router.get('/:fsId', uuidFriendshipIdParamValidation, getById);
-router.put('/:fsId/accept', uuidFriendshipIdParamValidation, accept);
-router.put('/:fsId/block', uuidFriendshipIdParamValidation, block);
-router.put('/:fsId/reject', uuidFriendshipIdParamValidation, reject);
-router.delete('/:fsId', uuidFriendshipIdParamValidation, remove);
+
+// ---- Update routes ----
+router.put('/:fsId/accept', writeLimiter, uuidFriendshipIdParamValidation, accept);
+router.put('/:fsId/block', writeLimiter, uuidFriendshipIdParamValidation, block);
+router.put('/:fsId/reject', writeLimiter, uuidFriendshipIdParamValidation, reject);
+router.put('/:fsId/unblock', writeLimiter, uuidFriendshipIdParamValidation, unblock);
+
+// ---- Delete ----
+router.delete('/:fsId', writeLimiter, uuidFriendshipIdParamValidation, remove);
 
 module.exports = router;

@@ -1,17 +1,8 @@
-const {
-  createCardList,
-  getCardListByCardId,
-  updateCardList,
-  deleteCardList,
-} = require('../services/cardListService');
+const { createCardList, getCardListByCardId, updateCardList, deleteCardList } = require('../services/cardListService');
 
 const createNewCardList = async (req, res, next) => {
   try {
-    const cardList = await createCardList(
-      req.params.cardId,
-      req.user.userId,
-      req.body
-    );
+    const cardList = await createCardList(req.params.cardId, req.user.userId, req.body);
     res.status(201).json({ cardList });
   } catch (error) {
     next(error);
@@ -20,11 +11,8 @@ const createNewCardList = async (req, res, next) => {
 
 const getCardList = async (req, res, next) => {
   try {
-    const cardList = await getCardListByCardId(
-      req.params.cardId,
-      req.user.userId
-    );
-    res.json({ cardList }); // cardList = array
+    const cardList = await getCardListByCardId(req.params.cardId, req.user.userId);
+    res.json({ cardList });
   } catch (error) {
     next(error);
   }
@@ -32,12 +20,8 @@ const getCardList = async (req, res, next) => {
 
 const updateExistingCardList = async (req, res, next) => {
   try {
-    const cardList = await updateCardList(
-      req.params.cardId,
-      req.params.clId,
-      req.user.userId,
-      req.body
-    );
+    // Kirim cardId dan clId ke service
+    const cardList = await updateCardList(req.params.cardId, req.params.clId, req.user.userId, req.body);
     res.json({ cardList });
   } catch (error) {
     next(error);
@@ -46,6 +30,7 @@ const updateExistingCardList = async (req, res, next) => {
 
 const deleteExistingCardList = async (req, res, next) => {
   try {
+    // Kirim cardId dan clId ke service
     await deleteCardList(req.params.cardId, req.params.clId, req.user.userId);
     res.json({ message: 'Card list deleted' });
   } catch (error) {
@@ -53,9 +38,4 @@ const deleteExistingCardList = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  createNewCardList,
-  getCardList,
-  updateExistingCardList,
-  deleteExistingCardList,
-};
+module.exports = { createNewCardList, getCardList, updateExistingCardList, deleteExistingCardList };

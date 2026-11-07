@@ -6,14 +6,11 @@ const { uuidMslqQuestionIdParamValidation, mslqStaticQuestionValidation } = requ
 const router = express.Router();
 
 router.use(authenticate);
-
-// Endpoint yang bisa diakses oleh semua user yang sudah login (Mahasiswa & Admin) untuk mengambil soal kuis
+// Allow all authenticated users to read questions, only admin can write
+router.post('/', authorize('admin'), mslqStaticQuestionValidation, create);
 router.get('/', getAll);
 router.get('/category/:category', getByCategory);
 router.get('/:id', uuidMslqQuestionIdParamValidation, getById);
-
-// Endpoint manajemen soal (Hanya Admin yang bisa membuat, mengubah, atau menghapus)
-router.post('/', authorize('admin'), mslqStaticQuestionValidation, create);
 router.put('/:id', authorize('admin'), uuidMslqQuestionIdParamValidation, mslqStaticQuestionValidation, update);
 router.delete('/:id', authorize('admin'), uuidMslqQuestionIdParamValidation, remove);
 

@@ -1,7 +1,6 @@
 const { LlmPromptTemplate } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 
-
 const createTemplate = async (data) => {
   return LlmPromptTemplate.create(data);
 };

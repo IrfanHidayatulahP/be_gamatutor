@@ -15,5 +15,4 @@ router.get('/:id', uuidCollabIdParamValidation, getById);
 router.put('/:id/role', uuidCollabIdParamValidation, cardListCollabValidation, updateRole);
 router.delete('/:id', uuidCollabIdParamValidation, remove);
 
-
 module.exports = router;

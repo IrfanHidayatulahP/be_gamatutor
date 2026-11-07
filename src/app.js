@@ -25,8 +25,16 @@ const userActivityLogRoutes = require('./routes/userActivityLogRoutes');
 const llmRecommendationHistoryRoutes = require('./routes/llmRecommendationHistoryRoutes');
 const userAvatarRoutes = require('./routes/userAvatarRoutes');
 const llmRoutes = require('./routes/llmRouters');
-const { errorHandler } = require('./middleware/errorHandler');
+
 const llmMicroGoalRoutes = require('./routes/llmMicroGoalRoutes');
+
+const boardRoutes = require('./routes/boardRoutes');
+const progressRoutes = require('./routes/progressRoutes');
+const groupCallRoutes = require('./routes/groupCallRoutes');
+const callRoutes = require('./routes/callRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
+
+const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -37,7 +45,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 app.use('/api/auth', authRoutes);
@@ -55,15 +63,23 @@ app.use('/api/user-quiz-results', userQuizResultRoutes);
 app.use('/api/monthly-evaluations', monthlyEvaluationRoutes);
 app.use('/api/card-list-collab', cardListCollabRoutes);
 app.use('/api/card-list-chat', cardListChatRoutes);
-// app.use('/api/user-activity-logs', userActivityLogRoutes);
-app.use('/api/activity-logs', userActivityLogRoutes);
 app.use('/api/llm-recommendation-histories', llmRecommendationHistoryRoutes);
 app.use('/api/user-avatar', userAvatarRoutes);
 app.use('/api/llmRekomen', llmRoutes);
+
+app.use('/api/user-activity-logs', userActivityLogRoutes);
+app.use('/api/activity-logs', userActivityLogRoutes);
+
 app.use('/api/llmMicro', llmMicroGoalRoutes);
 
+app.use('/api/board', boardRoutes);
+app.use('/api/progress', progressRoutes);
+app.use('/api/group-calls', groupCallRoutes);
+app.use('/api/calls', callRoutes);
+app.use('/api/calls', webhookRoutes);
+
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+    res.status(404).json({ error: 'Route not found' });
 });
 
 app.use(errorHandler);
