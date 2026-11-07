@@ -10,8 +10,11 @@ const {
     deleteMonthlyEvaluation,
 } = require('../services/monthlyEvaluationService');
 
-// Helper: ambil userId dari req.user (fleksibel terhadap berbagai bentuk payload JWT)
-const getUserId = (req) => req.user?.userId || req.user?.id || req.user?.sub;
+// Helper: ambil userId dari req.user (TANPA optional chaining agar bebas error copy-paste)
+const getUserId = (req) => {
+    if (!req.user) return null;
+    return req.user.userId || req.user.id || req.user.sub || null;
+};
 
 // ---- Custom actions ----
 const ckStatus = async(req, res) => {
@@ -43,7 +46,9 @@ const reflect = async(req, res) => {
             return res.status(400).json({ error: 'monthYear dan userReason wajib diisi' });
         }
 
-        console.log(`🔵 reflect userId=${userId} monthYear=${monthYear} reason=${userReason}`);
+        console.log(
+            `🔵 reflect userId=${userId} monthYear=${monthYear} reason=${userReason}`
+        );
 
         const result = await submitReflection(userId, monthYear, userReason);
         res.json(result);
@@ -74,8 +79,10 @@ const getAll = async(req, res, next) => {
             userId: req.query.userId,
             monthYear: req.query.monthYear,
             isSynchronized: req.query.isSynchronized === 'true' ?
-                true : req.query.isSynchronized === 'false' ?
-                false : undefined,
+                true :
+                req.query.isSynchronized === 'false' ?
+                false :
+                undefined,
             limit: parseInt(req.query.limit) || 50,
             offset: parseInt(req.query.offset) || 0,
         };

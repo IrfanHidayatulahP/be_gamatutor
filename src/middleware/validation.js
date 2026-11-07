@@ -199,7 +199,7 @@ const monthlyEvaluationValidation = [
 ];
 
 const monthlyEvalReflectionValidation = [
-    body('monthYear').matches(/^\d{4}-\d{2}$/).withMessage('Month-year format: YYYY-MM'),
+    body('monthYear').matches(/^\d{2}-\d{4}$/).withMessage('Month-year format: MM-YYYY'),
     body('userReason').notEmpty().isString().withMessage('userReason required'),
     handleValidationErrors
 ];
