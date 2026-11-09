@@ -173,13 +173,13 @@ const sendTestPush = async(userId, title, body, triggerAction) => {
     return result;
 };
 
-const sendPushToUser = async(userId, title, body, data = {}) => {
+const sendPushToUser = async(userId, title, body, data = {}, options = {}) => {
     const user = await User.findByPk(userId);
     if (!user || !user.fcmToken) {
         return { success: false, reason: 'User not found or no FCM token' };
     }
 
-    return sendPushNotification(user.fcmToken, title, body, data);
+    return sendPushNotification(user.fcmToken, title, body, data, options);
 };
 
 module.exports = {

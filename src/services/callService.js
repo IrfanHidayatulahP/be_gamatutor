@@ -94,7 +94,7 @@ const answerCall = async (callId, userId, signalingData = {}) => {
   // If already answered, return call with fresh tokens (idempotent)
   if (call.status === 'answered') {
     const { generateCallToken } = require('../services/livekitService');
-    const { token, roomName, livekitUrl } = generateCallToken(call.calleeId, call.callerId, call.callId);
+    const { token, roomName, livekitUrl } = await generateCallToken(call.calleeId, call.callerId, call.callId);
 
     const callWithTokens = await Call.findByPk(callId, {
       include: [

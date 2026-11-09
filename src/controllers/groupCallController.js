@@ -37,6 +37,12 @@ const joinByTask = async (req, res, next) => {
       return res.status(400).json({ error: 'taskId is required' });
     }
 
+     // 🛠️ TAMBAHKAN VALIDASI UUID DI SINI
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(taskId);
+    if (!isUUID) {
+      return res.status(400).json({ error: 'Format taskId tidak valid' });
+    }
+
     // Validate user is owner OR collaborator on this task/card
     const card = await Card.findByPk(taskId);
     if (!card) {
@@ -80,7 +86,7 @@ const joinByTask = async (req, res, next) => {
     const userName = `${user.firstName} ${user.lastName}`.trim() || user.username;
 
     // Generate LiveKit token
-    const { token, roomName, livekitUrl } = generateGroupCallToken(
+    const { token, roomName, livekitUrl } = await generateGroupCallToken(
       userId,
       taskId,
       groupCall.groupCallId,
@@ -134,13 +140,26 @@ const end = async (req, res, next) => {
   try {
     const result = await endGroupCall(req.params.groupCallId, req.user.userId);
 
-    // Emit WS event to group call room
     const io = getIo();
     if (io) {
+      // 1. Broadcast ke room group call
       io.emitToGroupCall(req.params.groupCallId, 'group-call:ended', {
         groupCallId: req.params.groupCallId,
         reason: 'host_ended'
       });
+
+      // 2. Kirim langsung ke setiap peserta yang ada di database
+      if (result.participants && result.participants.length > 0) {
+        result.participants.forEach(participantId => {
+          // Pastikan Host sendiri juga tidak crash
+          if (participantId !== req.user.userId) {
+            io.emitToUser(participantId, 'group-call:ended', {
+              groupCallId: req.params.groupCallId,
+              reason: 'host_ended'
+            });
+          }
+        });
+      }
     }
 
     res.json(result);
@@ -148,7 +167,6 @@ const end = async (req, res, next) => {
     next(error);
   }
 };
-
 const getById = async (req, res, next) => {
   try {
     const groupCall = await getGroupCallById(req.params.groupCallId, req.user.userId);

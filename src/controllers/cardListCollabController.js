@@ -104,6 +104,31 @@ const acceptCollaboration = async(req, res, next) => {
     }
 };
 
+const rejectCollaboration = async(req, res, next) => {
+    try {
+        const cardId = req.params.cardId;
+        const userId = req.user.userId;
+
+        // Hapus user dari collaborator card ini
+        await CardListCollab.destroy({
+            where: { cardId, userId }
+        });
+
+        // Bersihkan notifikasi terkait
+        await Notification.destroy({
+            where: {
+                userId: userId,
+                referenceId: cardId,
+                triggerAction: 'collaboration_request'
+            }
+        });
+
+        return res.status(200).json({ message: 'Kolaborasi ditolak' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     add,
     getAll,
@@ -112,5 +137,6 @@ module.exports = {
     getByUser,
     updateRole,
     remove,
-    acceptCollaboration
+    acceptCollaboration,
+    rejectCollaboration,
 };

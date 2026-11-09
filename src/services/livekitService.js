@@ -5,10 +5,14 @@ const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 
 if (!LIVEKIT_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
-  console.warn('LiveKit environment variables not configured');
+  console.warn('⚠️ LiveKit environment variables not configured');
 }
 
-const generateAccessToken = (identity, roomName, grants = {}) => {
+/**
+ * Generate LiveKit JWT access token.
+ * Defensive: `toJwt()` bisa sync atau async tergantung versi SDK.
+ */
+const generateAccessToken = async (identity, roomName, grants = {}) => {
   if (!LIVEKIT_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
     throw new Error('LiveKit not configured');
   }
@@ -28,30 +32,51 @@ const generateAccessToken = (identity, roomName, grants = {}) => {
     canUpdateOwnMetadata: grants.canUpdateOwnMetadata ?? true,
   });
 
-  return at.toJwt();
+  // ─── FIX: handle sync & async toJwt ───
+  let token = at.toJwt();
+
+  // Kalau toJwt() return Promise, await. Kalau string, tetap string.
+  if (token && typeof token.then === 'function') {
+    token = await token;
+  }
+
+  // ─── DEBUG: log tipe token ───
+  console.log(
+    `🎟️  LiveKit token for identity="${identity}", room="${roomName}" → ` +
+    `type=${typeof token}, length=${typeof token === 'string' ? token.length : 'N/A'}`
+  );
+  if (typeof token !== 'string') {
+    console.error('❌ CRITICAL: at.toJwt() did NOT return a string:', token);
+  }
+
+  return token;
 };
 
-const generateCallToken = (callerId, calleeId, callId) => {
+const generateCallToken = async (callerId, calleeId, callId) => {
   const roomName = `call_${callId}`;
   const identity = callerId;
 
+  const token = await generateAccessToken(identity, roomName);
+
   return {
-    token: generateAccessToken(identity, roomName),
+    token,
     roomName,
     livekitUrl: LIVEKIT_URL,
   };
 };
 
-const generateGroupCallToken = (userId, taskId, groupCallId, userName) => {
+const generateGroupCallToken = async (userId, taskId, groupCallId, userName) => {
   const roomName = `task_${taskId}`;
   const identity = userId;
 
+  const token = await generateAccessToken(identity, roomName, {
+    canPublish: true,
+    canSubscribe: true,
+    canPublishData: true,
+  });
+
   return {
-    token: generateAccessToken(identity, roomName, {
-      canPublish: true,
-      canSubscribe: true,
-      canPublishData: true,
-    }),
+    token,
     roomName,
     livekitUrl: LIVEKIT_URL,
   };

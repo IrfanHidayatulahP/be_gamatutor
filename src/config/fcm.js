@@ -36,7 +36,7 @@ const initializeFCM = () => {
   }
 };
 
-const sendPushNotification = async (fcmToken, title, body, data = {}) => {
+const sendPushNotification = async (fcmToken, title, body, data = {}, options = {}) => {
   if (!messaging) {
     console.warn('FCM not initialized, skipping push notification');
     return { success: false, reason: 'FCM not initialized' };
@@ -45,25 +45,28 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
   try {
     const message = {
       token: fcmToken,
-      notification: {
-        title,
-        body
-      },
       data: Object.fromEntries(
         Object.entries(data).map(([k, v]) => [k, String(v)])
       ),
       android: {
         priority: 'high'
-      },
-      apns: {
+      }
+    };
+
+    // Only include notification field for non-data-only messages.
+    // For calls, we send data-only so Android doesn't auto-show a system
+    // notification (CallKit handles it).
+    if (!options.dataOnly) {
+      message.notification = { title, body };
+      message.apns = {
         payload: {
           aps: {
             sound: 'default',
             badge: 1
           }
         }
-      }
-    };
+      };
+    }
 
     const response = await messaging.send(message);
     console.log('FCM push sent:', response);

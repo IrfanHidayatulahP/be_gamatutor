@@ -3,19 +3,27 @@ const { AppError } = require('../middleware/errorHandler');
 const { Op } = require('sequelize');
 const { generateGroupCallToken } = require('./livekitService');
 
-const createGroupCallActivity = async (groupCallId, userId, activityType, metadata = {}) => {
-  return CallActivity.create({ groupCallId, userId, activityType, metadata });
+const createGroupCallActivity = async (groupCallId, userId, activityType, metadata = {}, transaction = null) => {
+  return CallActivity.create({
+    callId: null,
+    groupCallId,
+    userId,
+    activityType,
+    metadata
+  }, { transaction });
 };
 
 const createGroupCall = async (hostId, data) => {
-  const { taskId } = data;
+  // const { taskId } = data;
+  const taskId = data.taskId ? String(data.taskId).trim() : null;
 
   if (!taskId) {
     throw new AppError('taskId is required', 400);
   }
 
   // Validate host is owner OR collaborator
-  const card = await Card.findByPk(taskId);
+  // const card = await Card.findByPk(taskId);
+  const card = await Card.findOne({ where: { cardId: taskId } });
   if (!card) {
     throw new AppError('Task not found', 404);
   }
@@ -32,6 +40,10 @@ const createGroupCall = async (hostId, data) => {
 
   if (!isOwner && !isCollaborator) {
     throw new AppError('Not a collaborator on this task', 403);
+  }
+
+  if (card.deleted) {
+    throw new AppError('Task sudah dihapus — tidak bisa memulai group call.', 400);
   }
 
   // Idempotency: return existing call if waiting or active
@@ -55,7 +67,7 @@ const createGroupCall = async (hostId, data) => {
   try {
     const groupCall = await GroupCall.create({
       hostId,
-      taskId,
+      taskId: card.cardId,
       title: data.title || card.title,
       type: 'audio',
       status: 'waiting',
@@ -76,7 +88,13 @@ const createGroupCall = async (hostId, data) => {
       connectionStatus: 'connected'
     }, { transaction });
 
-    await createGroupCallActivity(groupCall.groupCallId, hostId, 'call_initiated', { title: data.title || card.title }, transaction);
+    await createGroupCallActivity(
+      groupCall.groupCallId,
+      hostId,
+      'call_initiated',
+      { title: data.title || card.title },
+      transaction
+    );
 
     await transaction.commit();
 
@@ -88,6 +106,11 @@ const createGroupCall = async (hostId, data) => {
     });
   } catch (error) {
     await transaction.rollback();
+    console.error('❌ Error creating group call:', error.message);
+
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      throw new AppError(`Database Error: ${error.message}`, 400);
+    }
     throw error;
   }
 };
@@ -148,11 +171,14 @@ const joinGroupCall = async (groupCallId, userId) => {
     }, { transaction });
 
     // If status is waiting and this makes 2+ active participants, transition to active
+    // If status is waiting and this makes 2+ active participants, transition to active
     if (groupCall.status === 'waiting') {
       const newActiveCount = activeParticipantCount + 1;
       if (newActiveCount >= 2) {
         await groupCall.update({ status: 'active', startedAt: new Date() }, { transaction });
-        await createGroupCallActivity(groupCallId, userId, 'call_started', {}, transaction);
+
+        // Ganti 'call_started' menjadi 'call_initiated' agar sesuai dengan ENUM database
+        await createGroupCallActivity(groupCallId, userId, 'call_initiated', { reason: 'reached_min_participants' }, transaction);
       }
     } else {
       await createGroupCallActivity(groupCallId, userId, 'participant_joined', {}, transaction);
@@ -209,22 +235,18 @@ const leaveGroupCall = async (groupCallId, userId) => {
     let newHostId = null;
 
     // If host leaves, transfer host to longest-joined remaining participant
-    if (groupCall.hostId === userId && remainingActive > 0) {
-      const newHostParticipant = await GroupCallParticipant.findOne({
-        where: {
-          groupCallId,
-          userId: { [Op.ne]: userId },
-          leftAt: null
-        },
-        order: [['joinedAt', 'ASC']]
-      });
-
-      if (newHostParticipant) {
-        await groupCall.update({ hostId: newHostParticipant.userId }, { transaction });
-        await newHostParticipant.update({ role: 'host' }, { transaction });
-        hostTransferred = true;
-        newHostId = newHostParticipant.userId;
-      }
+    if (groupCall.hostId === userId) {
+      await groupCall.update({ status: 'ended', endedAt: new Date() }, { transaction });
+      await GroupCallParticipant.update(
+        { leftAt: new Date(), connectionStatus: 'disconnected' },
+        { where: { groupCallId, leftAt: null }, transaction }
+      );
+      await createGroupCallActivity(groupCallId, userId, 'call_ended', { reason: 'host_left' }, transaction);
+      hostTransferred = false;
+      newHostId = null;
+    } else if (remainingActive === 0) {
+      await groupCall.update({ status: 'ended', endedAt: new Date() }, { transaction });
+      await createGroupCallActivity(groupCallId, userId, 'call_ended', { reason: 'no_participants' }, transaction);
     }
 
     // If no more participants, end the call
@@ -259,7 +281,7 @@ const endGroupCall = async (groupCallId, userId) => {
   }
 
   if (groupCall.status === 'ended') {
-    return { message: 'Group call already ended', groupCallId };
+    return { message: 'Group call already ended', groupCallId, participants: [] };
   }
 
   const transaction = await sequelize.transaction();
@@ -276,7 +298,11 @@ const endGroupCall = async (groupCallId, userId) => {
 
     await transaction.commit();
 
-    return { message: 'Group call ended', groupCallId };
+    // Kembalikan daftar peserta agar Controller bisa broadcast lewat socket
+    const participants = await GroupCallParticipant.findAll({ where: { groupCallId } });
+    const participantIds = participants.map(p => p.userId);
+
+    return { message: 'Group call ended', groupCallId, participants: participantIds };
   } catch (error) {
     await transaction.rollback();
     throw error;

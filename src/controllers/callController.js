@@ -25,7 +25,8 @@ const initiate = async (req, res, next) => {
     const callerName = `${caller.firstName} ${caller.lastName}`.trim() || caller.username;
 
     // Generate LiveKit credentials for voice call (required for FCM navigation)
-    const { token, roomName, livekitUrl } = generateCallToken(callerId, calleeId, call.callId);
+    const { token, roomName, livekitUrl } = await generateCallToken(callerId, calleeId, call.callId);
+    res.status(201).json({ callId, token, roomName, livekitUrl, call });
 
     const io = req.app.get('io');
 
@@ -45,7 +46,7 @@ const initiate = async (req, res, next) => {
         token: String(token),   // Ensure string serialization
         roomName: String(roomName),
         livekitUrl: String(livekitUrl)
-      });
+      },{ dataOnly: true });
     } catch (fcmError) {
       console.error('FCM send failed:', fcmError);
     }
@@ -85,7 +86,7 @@ const answer = async (req, res, next) => {
       if (callType === 'audio') {
         // LiveKit audio call - generate token, roomName, livekitUrl for caller
         const { generateCallToken } = require('../services/livekitService');
-        const { token, roomName, livekitUrl } = generateCallToken(callerId, call.calleeId, call.callId);
+        const { token, roomName, livekitUrl } = await generateCallToken(callerId, call.calleeId, call.callId);
 
         io.to(`user:${callerId}`).emit('call:accepted', {
           callId: String(call.callId),
@@ -214,7 +215,7 @@ const initiateLiveKit = async (req, res, next) => {
     const call = await initiateCall(callerId, calleeId, 'audio', {});
 
     // Generate LiveKit token
-    const { token, roomName, livekitUrl } = generateCallToken(callerId, calleeId, call.callId);
+    const { token, roomName, livekitUrl } = await generateCallToken(callerId, calleeId, call.callId);
 
     // Get caller info for FCM
     const caller = await User.findByPk(callerId, {
@@ -234,7 +235,7 @@ const initiateLiveKit = async (req, res, next) => {
         token: String(token),   // Ensure string serialization
         roomName: String(roomName),
         livekitUrl: String(livekitUrl)
-      });
+      }, { dataOnly: true });
     } catch (fcmError) {
       console.error('FCM send failed:', fcmError);
       // Don't fail the request if FCM fails
@@ -285,11 +286,11 @@ const acceptLiveKit = async (req, res, next) => {
     const call = await answerCall(callId, calleeId, {});
 
     // Generate LiveKit token for CALLEE (the one accepting)
-    const { token, roomName, livekitUrl } = generateCallToken(calleeId, call.callerId, call.callId);
+    const { token, roomName, livekitUrl } = await generateCallToken(calleeId, call.callerId, call.callId);
 
     // Generate token for CALLER too (for call:answered event)
     const { token: callerToken, roomName: callerRoomName, livekitUrl: callerLivekitUrl } =
-      generateCallToken(call.callerId, calleeId, call.callId);
+      await generateCallToken(call.callerId, calleeId, call.callId);
 
     // Emit to caller via Socket.IO
     const io = req.app.get('io');

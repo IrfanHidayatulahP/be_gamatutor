@@ -73,6 +73,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
             field: 'trigger_user_id'
         },
+        referenceId: {
+            type: DataTypes.UUID,
+            allowNull: true,
+            field: 'reference_id'
+        },
         read: {
             type: DataTypes.BOOLEAN,
             allowNull: false,

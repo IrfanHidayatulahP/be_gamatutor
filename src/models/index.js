@@ -130,13 +130,19 @@ UserAvatar.belongsTo(AvatarComponent, { foreignKey: 'specialId', as: 'special' }
 // F. CALL MODELS
 // User -> Call (as caller)
 User.hasMany(Call, { foreignKey: 'callerId', as: 'outgoingCalls' });
+Call.belongsTo(User, { foreignKey: 'callerId', as: 'caller' });
 
 // User -> Call (as callee)
 User.hasMany(Call, { foreignKey: 'calleeId', as: 'incomingCalls' });
+Call.belongsTo(User, { foreignKey: 'calleeId', as: 'callee' });
 
 // User -> CallParticipant
 User.hasMany(CallParticipant, { foreignKey: 'userId', as: 'callParticipations' });
 CallParticipant.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// Call -> CallParticipant
+Call.hasMany(CallParticipant, { foreignKey: 'callId', as: 'participants' });
+CallParticipant.belongsTo(Call, { foreignKey: 'callId', as: 'call' });
 
 // Call -> CallActivity
 Call.hasMany(CallActivity, { foreignKey: 'callId', as: 'activities' });
@@ -150,10 +156,32 @@ CallActivity.belongsTo(GroupCall, { foreignKey: 'groupCallId', as: 'groupCall' }
 User.hasMany(CallActivity, { foreignKey: 'userId', as: 'callActivities' });
 CallActivity.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-// Call static associations (for GroupCall, GroupCallParticipant class-based models)
-Call.associate({ User, CallParticipant, GroupCall, GroupCallParticipant, CallActivity });
-GroupCall.associate({ User, Card, GroupCallParticipant, CallActivity });
-GroupCallParticipant.associate({ GroupCall, User });
+// ==========================================
+// G. GROUP CALL ASSOCIATIONS (PERBAIKAN)
+// ==========================================
+// User -> GroupCall (sebagai host)
+User.hasMany(GroupCall, { foreignKey: 'hostId', as: 'hostedGroupCalls' });
+GroupCall.belongsTo(User, { foreignKey: 'hostId', as: 'host' });
+
+// Card -> GroupCall (sebagai task)
+// PENTING: targetKey harus 'cardId' karena id card adalah cardId (card_id)
+Card.hasMany(GroupCall, { foreignKey: 'taskId', sourceKey: 'cardId', as: 'groupCalls' });
+GroupCall.belongsTo(Card, { foreignKey: 'taskId', targetKey: 'cardId', as: 'task' });
+
+// GroupCall -> GroupCallParticipant
+GroupCall.hasMany(GroupCallParticipant, { foreignKey: 'groupCallId', as: 'participants' });
+GroupCallParticipant.belongsTo(GroupCall, { foreignKey: 'groupCallId', as: 'groupCall' });
+
+// User -> GroupCallParticipant
+User.hasMany(GroupCallParticipant, { foreignKey: 'userId', as: 'groupCallParticipations' });
+GroupCallParticipant.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// ==========================================
+// HAPUS BARIS INI KARENA SUDAH KITA GANTI DI ATAS
+// ==========================================
+// Call.associate({ User, CallParticipant, GroupCall, GroupCallParticipant, CallActivity });
+// GroupCall.associate({ User, Card, GroupCallParticipant, CallActivity });
+// GroupCallParticipant.associate({ GroupCall, User });
 
 module.exports = {
     User,

@@ -1,5 +1,13 @@
 const express = require('express');
-const { createNewCard, getCard, getCards, updateExistingCard, deleteExistingCard } = require('../controllers/cardController');
+const { 
+    createNewCard, 
+    getCard, 
+    getCards, 
+    updateExistingCard, 
+    deleteExistingCard,
+    requestFocusSession, 
+    respondFocusSession 
+} = require('../controllers/cardController');
 const { cardValidation, uuidParamValidation } = require('../middleware/validation');
 const { authenticate } = require('../middleware/auth');
 const { writeLimiter } = require('../middleware/rateLimiter');
@@ -16,5 +24,10 @@ router.put('/:id', writeLimiter, uuidParamValidation, cardValidation, updateExis
 router.delete('/:id', writeLimiter, uuidParamValidation, deleteExistingCard);
 
 router.put('/:cardId/collaboration/accept', writeLimiter, cardListCollabController.acceptCollaboration);
+router.put('/:cardId/collaboration/reject', writeLimiter, cardListCollabController.rejectCollaboration);
+
+// Route untuk alur persetujuan fokus
+router.post('/:id/request-focus', requestFocusSession);
+router.post('/:id/respond-focus', respondFocusSession);
 
 module.exports = router;
